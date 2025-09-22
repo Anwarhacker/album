@@ -10,7 +10,9 @@ export default function Upload() {
   const router = useRouter();
   const [files, setFiles] = useState([]);
   const [caption, setCaption] = useState("");
+  const [autoGenerateCaption, setAutoGenerateCaption] = useState(true);
   const [tags, setTags] = useState("");
+  const [autoGenerateTags, setAutoGenerateTags] = useState(true);
   const [photoDate, setPhotoDate] = useState("");
   const [uploading, setUploading] = useState(false);
   const [previews, setPreviews] = useState([]);
@@ -141,8 +143,8 @@ export default function Upload() {
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("caption", caption);
-        formData.append("tags", tags);
+        formData.append("caption", autoGenerateCaption ? "" : caption);
+        formData.append("tags", autoGenerateTags ? "" : tags);
         formData.append("photoDate", photoDate || new Date().toISOString());
 
         try {
@@ -173,7 +175,9 @@ export default function Upload() {
         setFiles([]);
         setPreviews([]);
         setCaption("");
+        setAutoGenerateCaption(true);
         setTags("");
+        setAutoGenerateTags(true);
         setPhotoDate("");
         router.push("/gallery");
       } else {
@@ -327,32 +331,104 @@ export default function Upload() {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                <span className="mr-2">💬</span>
+                <span className="mr-2">🤖</span>
                 Caption
               </label>
-              <input
-                type="text"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
-                placeholder="Add a beautiful caption for your mehndi design..."
-              />
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="autoGenerate"
+                    checked={autoGenerateCaption}
+                    onChange={(e) => setAutoGenerateCaption(e.target.checked)}
+                    className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2"
+                  />
+                  <label
+                    htmlFor="autoGenerate"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Auto-generate beautiful caption with AI
+                  </label>
+                </div>
+
+                {!autoGenerateCaption && (
+                  <input
+                    type="text"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
+                    placeholder="Add a custom caption for your mehndi design..."
+                  />
+                )}
+
+                {autoGenerateCaption && (
+                  <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200">
+                    <div className="flex items-center space-x-2 text-sm text-gray-700">
+                      <span className="text-lg">✨</span>
+                      <span className="font-medium">
+                        AI will generate a beautiful caption for your photo!
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Our AI analyzes your image and creates engaging
+                      descriptions automatically.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
                 <span className="mr-2">🏷️</span>
                 Tags
               </label>
-              <input
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
-                placeholder="e.g., mehndi, design, floral, bridal, traditional"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                Separate tags with commas
-              </p>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="autoGenerateTags"
+                    checked={autoGenerateTags}
+                    onChange={(e) => setAutoGenerateTags(e.target.checked)}
+                    className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2"
+                  />
+                  <label
+                    htmlFor="autoGenerateTags"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Auto-generate relevant tags with AI
+                  </label>
+                </div>
+
+                {!autoGenerateTags && (
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
+                    placeholder="e.g., mehndi, design, floral, bridal, traditional"
+                  />
+                )}
+
+                {autoGenerateTags && (
+                  <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                    <div className="flex items-center space-x-2 text-sm text-gray-700">
+                      <span className="text-lg">🏷️</span>
+                      <span className="font-medium">
+                        AI will generate 2-3 relevant tags for your photo!
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Tags help categorize and search your photos easily.
+                    </p>
+                  </div>
+                )}
+
+                {!autoGenerateTags && (
+                  <p className="text-xs text-gray-500">
+                    Separate tags with commas
+                  </p>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">

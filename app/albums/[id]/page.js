@@ -25,6 +25,7 @@ export default function AlbumDetail() {
   const [editAlbumDescription, setEditAlbumDescription] = useState("");
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [viewMode, setViewMode] = useState("grid"); // 'grid', 'compact', 'list'
 
   if (status === "loading")
     return (
@@ -343,6 +344,43 @@ export default function AlbumDetail() {
               </button>
             </div>
           )}
+
+          {/* View Mode Controls */}
+          <div className="flex gap-1 flex-shrink-0">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
+                viewMode === "grid"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+              }`}
+              title="Grid View"
+            >
+              <span className="text-sm">⊞</span>
+            </button>
+            <button
+              onClick={() => setViewMode("compact")}
+              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
+                viewMode === "compact"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+              }`}
+              title="Compact View"
+            >
+              <span className="text-sm">⊟</span>
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
+                viewMode === "list"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+              }`}
+              title="List View"
+            >
+              <span className="text-sm">☰</span>
+            </button>
+          </div>
         </div>
 
         {/* Multi-Select Preview */}
@@ -359,15 +397,15 @@ export default function AlbumDetail() {
                 Remove from Album
               </button>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
               {selectedPhotos.map((photo) => (
-                <div key={photo._id} className="relative flex-shrink-0">
+                <div key={photo._id} className="relative">
                   <Image
                     src={photo.url}
                     alt={photo.caption || "Selected photo"}
                     width={80}
                     height={80}
-                    className="w-20 h-20 object-cover rounded-lg border-2 border-pink-500"
+                    className="w-full h-20 object-cover rounded-lg border-2 border-pink-500"
                   />
                   <button
                     onClick={() => togglePhotoSelection(photo)}
@@ -389,16 +427,103 @@ export default function AlbumDetail() {
               Add photos from your gallery!
             </Link>
           </div>
+        ) : viewMode === "list" ? (
+          <div className="space-y-4">
+            {photos.map((photo) => (
+              <div
+                key={photo._id}
+                className={`flex bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border-2 cursor-pointer ${
+                  selectedPhotos.some((p) => p._id === photo._id)
+                    ? "border-pink-500 ring-2 ring-pink-200"
+                    : "border-gray-100"
+                }`}
+                onClick={() => openModal(photo)}
+              >
+                <div className="relative w-32 h-32 flex-shrink-0">
+                  <Image
+                    src={photo.url}
+                    alt={photo.caption || "Mehndi photo"}
+                    fill
+                    className="object-cover"
+                    sizes="128px"
+                  />
+                  {multiSelectMode && (
+                    <div className="absolute top-2 left-2">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedPhotos.some((p) => p._id === photo._id)
+                            ? "bg-pink-500 border-pink-500 text-white"
+                            : "bg-white/90 border-gray-300 text-gray-500"
+                        }`}
+                      >
+                        {selectedPhotos.some((p) => p._id === photo._id) && (
+                          <span className="text-xs">✓</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      {photo.caption && (
+                        <p className="text-gray-800 font-medium text-sm mb-1 line-clamp-2">
+                          {photo.caption}
+                        </p>
+                      )}
+                      {photo.tags && photo.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {photo.tags.slice(0, 3).map((tag, index) => (
+                            <span
+                              key={index}
+                              className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium border border-pink-200/50"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                          {photo.tags.length > 3 && (
+                            <span className="text-xs text-gray-500 px-2 py-1">
+                              +{photo.tags.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        {format(new Date(photo.photo_date), "dd MMM yyyy")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <Masonry
-            breakpointCols={breakpointColumnsObj}
+            breakpointCols={
+              viewMode === "compact"
+                ? {
+                    default: 6,
+                    1400: 6,
+                    1100: 5,
+                    768: 4,
+                    480: 3,
+                  }
+                : breakpointColumnsObj
+            }
             className="my-masonry-grid"
             columnClassName="my-masonry-grid_column"
           >
             {photos.map((photo) => (
-              <div key={photo._id} className="mb-4 break-inside-avoid">
+              <div
+                key={photo._id}
+                className={`${
+                  viewMode === "compact" ? "mb-2" : "mb-4"
+                } break-inside-avoid`}
+              >
                 <div
-                  className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-200 border-2 ${
+                  className={`bg-white ${
+                    viewMode === "compact" ? "rounded-lg" : "rounded-lg"
+                  } shadow-md overflow-hidden hover:shadow-lg transition duration-200 border-2 ${
                     selectedPhotos.some((p) => p._id === photo._id)
                       ? "border-pink-500 ring-2 ring-pink-200"
                       : "border-gray-100"
@@ -411,8 +536,8 @@ export default function AlbumDetail() {
                     <Image
                       src={photo.url}
                       alt={photo.caption || "Mehndi photo"}
-                      width={300}
-                      height={400}
+                      width={viewMode === "compact" ? 250 : 300}
+                      height={viewMode === "compact" ? 350 : 400}
                       className="w-full h-auto object-cover"
                       style={{ aspectRatio: "auto" }}
                     />
@@ -436,14 +561,26 @@ export default function AlbumDetail() {
                     </div>
                   </div>
                   {photo.caption && (
-                    <div className="p-4">
-                      <p className="text-gray-700 text-sm">{photo.caption}</p>
+                    <div
+                      className={`${viewMode === "compact" ? "p-2" : "p-4"}`}
+                    >
+                      <p
+                        className={`text-gray-700 ${
+                          viewMode === "compact" ? "text-xs" : "text-sm"
+                        }`}
+                      >
+                        {photo.caption}
+                      </p>
                       {photo.tags.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {photo.tags.map((tag, index) => (
                             <span
                               key={index}
-                              className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded"
+                              className={`bg-pink-100 text-pink-800 ${
+                                viewMode === "compact"
+                                  ? "text-xs px-1.5 py-0.5"
+                                  : "text-xs px-2 py-1"
+                              } rounded`}
                             >
                               #{tag}
                             </span>

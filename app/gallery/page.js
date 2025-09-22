@@ -25,6 +25,7 @@ export default function Gallery() {
   const [editTags, setEditTags] = useState("");
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [viewMode, setViewMode] = useState("grid"); // 'grid', 'compact', 'list'
 
   // Handle authentication loading and redirect
   useEffect(() => {
@@ -324,6 +325,60 @@ export default function Gallery() {
     }
   };
 
+  const handleRegenerateCaption = async () => {
+    if (!selectedPhoto) return;
+
+    try {
+      const res = await fetch("/api/generate-caption", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl: selectedPhoto.url,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setEditCaption(data.caption);
+        alert("New caption generated! Click 'Save Changes' to apply it.");
+      } else {
+        alert("Failed to generate new caption");
+      }
+    } catch (error) {
+      console.error("Error regenerating caption:", error);
+      alert("Failed to generate new caption");
+    }
+  };
+
+  const handleRegenerateTags = async () => {
+    if (!selectedPhoto) return;
+
+    try {
+      const res = await fetch("/api/generate-caption", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl: selectedPhoto.url,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setEditTags(data.tags ? data.tags.join(", ") : "");
+        alert("New tags generated! Click 'Save Changes' to apply them.");
+      } else {
+        alert("Failed to generate new tags");
+      }
+    } catch (error) {
+      console.error("Error regenerating tags:", error);
+      alert("Failed to generate new tags");
+    }
+  };
+
   // Improved responsive breakpoints
   const breakpointColumnsObj = {
     default: 4,
@@ -414,6 +469,43 @@ export default function Gallery() {
                 <span className="hidden sm:inline">Select</span>
               </button>
             </div>
+
+            {/* View Mode Controls */}
+            <div className="flex gap-1 justify-center lg:justify-end">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
+                  viewMode === "grid"
+                    ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                }`}
+                title="Grid View"
+              >
+                <span className="text-sm">⊞</span>
+              </button>
+              <button
+                onClick={() => setViewMode("compact")}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
+                  viewMode === "compact"
+                    ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                }`}
+                title="Compact View"
+              >
+                <span className="text-sm">⊟</span>
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
+                  viewMode === "list"
+                    ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                }`}
+                title="List View"
+              >
+                <span className="text-sm">☰</span>
+              </button>
+            </div>
           </div>
 
           {/* Search Section */}
@@ -467,15 +559,15 @@ export default function Gallery() {
                   </button>
                 </div>
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
                 {selectedPhotos.map((photo) => (
-                  <div key={photo._id} className="relative flex-shrink-0">
+                  <div key={photo._id} className="relative">
                     <Image
                       src={photo.url}
                       alt={photo.caption || "Selected photo"}
                       width={80}
                       height={80}
-                      className="w-20 h-20 object-cover rounded-lg border-2 border-pink-500"
+                      className="w-full h-20 object-cover rounded-lg border-2 border-pink-500"
                     />
                     <button
                       onClick={() => togglePhotoSelection(photo)}
@@ -512,21 +604,104 @@ export default function Gallery() {
               </Link>
             </div>
           ) : view === "gallery" ? (
-            <Masonry
-              breakpointCols={breakpointColumnsObj}
-              className="flex w-auto -ml-4 sm:-ml-6"
-              columnClassName="pl-4 sm:pl-6 bg-clip-padding"
-            >
-              {photos.map((photo) => (
-                <PhotoCard
-                  key={photo._id}
-                  photo={photo}
-                  onOpenModal={openModal}
-                  isSelected={selectedPhotos.some((p) => p._id === photo._id)}
-                  multiSelectMode={multiSelectMode}
-                />
-              ))}
-            </Masonry>
+            viewMode === "list" ? (
+              <div className="space-y-4">
+                {photos.map((photo) => (
+                  <div
+                    key={photo._id}
+                    className={`flex bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border-2 cursor-pointer ${
+                      selectedPhotos.some((p) => p._id === photo._id)
+                        ? "border-pink-500 ring-2 ring-pink-200"
+                        : "border-gray-100"
+                    }`}
+                    onClick={() => openModal(photo)}
+                  >
+                    <div className="relative w-32 h-32 flex-shrink-0">
+                      <Image
+                        src={photo.url}
+                        alt={photo.caption || "Mehndi photo"}
+                        fill
+                        className="object-cover"
+                        sizes="128px"
+                      />
+                      {multiSelectMode && (
+                        <div className="absolute top-2 left-2">
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              selectedPhotos.some((p) => p._id === photo._id)
+                                ? "bg-pink-500 border-pink-500 text-white"
+                                : "bg-white/90 border-gray-300 text-gray-500"
+                            }`}
+                          >
+                            {selectedPhotos.some(
+                              (p) => p._id === photo._id
+                            ) && <span className="text-xs">✓</span>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          {photo.caption && (
+                            <p className="text-gray-800 font-medium text-sm mb-1 line-clamp-2">
+                              {photo.caption}
+                            </p>
+                          )}
+                          {photo.tags && photo.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {photo.tags.slice(0, 3).map((tag, index) => (
+                                <span
+                                  key={index}
+                                  className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium border border-pink-200/50"
+                                >
+                                  #{tag}
+                                </span>
+                              ))}
+                              {photo.tags.length > 3 && (
+                                <span className="text-xs text-gray-500 px-2 py-1">
+                                  +{photo.tags.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          <p className="text-xs text-gray-500">
+                            {format(new Date(photo.photo_date), "dd MMM yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Masonry
+                breakpointCols={
+                  viewMode === "compact"
+                    ? {
+                        default: 6,
+                        1400: 6,
+                        1100: 5,
+                        768: 4,
+                        480: 3,
+                      }
+                    : breakpointColumnsObj
+                }
+                className="flex w-auto -ml-2 sm:-ml-3"
+                columnClassName="pl-2 sm:pl-3 bg-clip-padding"
+              >
+                {photos.map((photo) => (
+                  <PhotoCard
+                    key={photo._id}
+                    photo={photo}
+                    onOpenModal={openModal}
+                    isSelected={selectedPhotos.some((p) => p._id === photo._id)}
+                    multiSelectMode={multiSelectMode}
+                    compact={viewMode === "compact"}
+                  />
+                ))}
+              </Masonry>
+            )
           ) : (
             <div className="space-y-8 sm:space-y-12">
               {groupedPhotos.map(([dateStr, datePhotos]) => (
@@ -538,24 +713,108 @@ export default function Gallery() {
                       {datePhotos.length !== 1 ? "s" : ""})
                     </span>
                   </h2>
-                  <Masonry
-                    breakpointCols={breakpointColumnsObj}
-                    className="flex w-auto -ml-4 sm:-ml-6"
-                    columnClassName="pl-4 sm:pl-6 bg-clip-padding"
-                  >
-                    {datePhotos.map((photo) => (
-                      <PhotoCard
-                        key={photo._id}
-                        photo={photo}
-                        onOpenModal={openModal}
-                        showDate={false}
-                        isSelected={selectedPhotos.some(
-                          (p) => p._id === photo._id
-                        )}
-                        multiSelectMode={multiSelectMode}
-                      />
-                    ))}
-                  </Masonry>
+                  {viewMode === "list" ? (
+                    <div className="space-y-4">
+                      {datePhotos.map((photo) => (
+                        <div
+                          key={photo._id}
+                          className={`flex bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border-2 cursor-pointer ${
+                            selectedPhotos.some((p) => p._id === photo._id)
+                              ? "border-pink-500 ring-2 ring-pink-200"
+                              : "border-gray-100"
+                          }`}
+                          onClick={() => openModal(photo)}
+                        >
+                          <div className="relative w-32 h-32 flex-shrink-0">
+                            <Image
+                              src={photo.url}
+                              alt={photo.caption || "Mehndi photo"}
+                              fill
+                              className="object-cover"
+                              sizes="128px"
+                            />
+                            {multiSelectMode && (
+                              <div className="absolute top-2 left-2">
+                                <div
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                    selectedPhotos.some(
+                                      (p) => p._id === photo._id
+                                    )
+                                      ? "bg-pink-500 border-pink-500 text-white"
+                                      : "bg-white/90 border-gray-300 text-gray-500"
+                                  }`}
+                                >
+                                  {selectedPhotos.some(
+                                    (p) => p._id === photo._id
+                                  ) && <span className="text-xs">✓</span>}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                {photo.caption && (
+                                  <p className="text-gray-800 font-medium text-sm mb-1 line-clamp-2">
+                                    {photo.caption}
+                                  </p>
+                                )}
+                                {photo.tags && photo.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mb-2">
+                                    {photo.tags
+                                      .slice(0, 3)
+                                      .map((tag, index) => (
+                                        <span
+                                          key={index}
+                                          className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium border border-pink-200/50"
+                                        >
+                                          #{tag}
+                                        </span>
+                                      ))}
+                                    {photo.tags.length > 3 && (
+                                      <span className="text-xs text-gray-500 px-2 py-1">
+                                        +{photo.tags.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Masonry
+                      breakpointCols={
+                        viewMode === "compact"
+                          ? {
+                              default: 6,
+                              1400: 6,
+                              1100: 5,
+                              768: 4,
+                              480: 3,
+                            }
+                          : breakpointColumnsObj
+                      }
+                      className="flex w-auto -ml-2 sm:-ml-3"
+                      columnClassName="pl-2 sm:pl-3 bg-clip-padding"
+                    >
+                      {datePhotos.map((photo) => (
+                        <PhotoCard
+                          key={photo._id}
+                          photo={photo}
+                          onOpenModal={openModal}
+                          showDate={false}
+                          isSelected={selectedPhotos.some(
+                            (p) => p._id === photo._id
+                          )}
+                          multiSelectMode={multiSelectMode}
+                          compact={viewMode === "compact"}
+                        />
+                      ))}
+                    </Masonry>
+                  )}
                 </div>
               ))}
             </div>
@@ -580,6 +839,8 @@ export default function Gallery() {
               editTags={editTags}
               setEditTags={setEditTags}
               onEdit={handleEdit}
+              onRegenerateCaption={handleRegenerateCaption}
+              onRegenerateTags={handleRegenerateTags}
             />
           )}
         </div>
@@ -595,11 +856,18 @@ function PhotoCard({
   showDate = true,
   isSelected = false,
   multiSelectMode = false,
+  compact = false,
 }) {
   return (
-    <div className="mb-4 sm:mb-6 break-inside-avoid group">
+    <div
+      className={`${
+        compact ? "mb-2 sm:mb-3" : "mb-4 sm:mb-6"
+      } break-inside-avoid group`}
+    >
       <div
-        className={`bg-white rounded-xl sm:rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 ${
+        className={`bg-white ${
+          compact ? "rounded-lg" : "rounded-xl sm:rounded-2xl"
+        } shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 ${
           isSelected
             ? "border-pink-500 ring-2 ring-pink-200"
             : "border-gray-100"
@@ -612,11 +880,15 @@ function PhotoCard({
           <Image
             src={photo.url}
             alt={photo.caption || "Mehndi photo"}
-            width={400}
-            height={500}
+            width={compact ? 300 : 400}
+            height={compact ? 400 : 500}
             className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
             style={{ aspectRatio: "auto" }}
-            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1100px) 33vw, 25vw"
+            sizes={
+              compact
+                ? "(max-width: 480px) 33vw, (max-width: 768px) 25vw, (max-width: 1100px) 20vw, 16vw"
+                : "(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1100px) 33vw, 25vw"
+            }
             priority={false}
             loading="lazy"
           />
@@ -696,6 +968,8 @@ function PhotoModal({
   editTags,
   setEditTags,
   onEdit,
+  onRegenerateCaption,
+  onRegenerateTags,
 }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
@@ -769,25 +1043,43 @@ function PhotoModal({
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Caption
                   </label>
-                  <input
-                    type="text"
-                    value={editCaption}
-                    onChange={(e) => setEditCaption(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    placeholder="Enter caption..."
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editCaption}
+                      onChange={(e) => setEditCaption(e.target.value)}
+                      className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="Enter caption..."
+                    />
+                    <button
+                      onClick={onRegenerateCaption}
+                      className="px-3 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105 whitespace-nowrap"
+                      title="Generate AI caption"
+                    >
+                      🤖 AI
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tags (comma-separated)
                   </label>
-                  <input
-                    type="text"
-                    value={editTags}
-                    onChange={(e) => setEditTags(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    placeholder="tag1, tag2, tag3..."
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editTags}
+                      onChange={(e) => setEditTags(e.target.value)}
+                      className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="tag1, tag2, tag3..."
+                    />
+                    <button
+                      onClick={onRegenerateTags}
+                      className="px-3 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105 whitespace-nowrap"
+                      title="Generate AI tags"
+                    >
+                      🏷️ AI
+                    </button>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button

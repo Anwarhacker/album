@@ -63,14 +63,67 @@ export async function POST(request) {
         .end(buffer);
     });
 
+    // Generate AI caption and tags if none provided
+    let finalCaption = caption;
+    let finalTags = tags;
+    if (!caption || caption.trim() === "" || tags.length === 0) {
+      try {
+        const aiResponse = await fetch(
+          `${
+            process.env.NEXTAUTH_URL || "http://localhost:3000"
+          }/api/generate-caption`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Include session cookie for authentication
+              Cookie: request.headers.get("cookie") || "",
+            },
+            body: JSON.stringify({
+              imageUrl: result.secure_url,
+            }),
+          }
+        );
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          if (!caption || caption.trim() === "") {
+            finalCaption = aiData.caption;
+          }
+          if (tags.length === 0) {
+            finalTags = aiData.tags || [];
+          }
+        } else {
+          console.warn(
+            "Failed to generate AI content:",
+            await aiResponse.text()
+          );
+          if (!caption || caption.trim() === "") {
+            finalCaption = "Beautiful mehndi design"; // Fallback caption
+          }
+          if (tags.length === 0) {
+            finalTags = ["mehndi", "design"]; // Fallback tags
+          }
+        }
+      } catch (error) {
+        console.warn("Error generating AI content:", error);
+        if (!caption || caption.trim() === "") {
+          finalCaption = "Beautiful mehndi design"; // Fallback caption
+        }
+        if (tags.length === 0) {
+          finalTags = ["mehndi", "design"]; // Fallback tags
+        }
+      }
+    }
+
     // Save to MongoDB
     const photo = new Photo({
       user_id: session.user.id,
       public_id: result.public_id,
       url: result.secure_url,
       folder,
-      caption,
-      tags,
+      caption: finalCaption,
+      tags: finalTags,
       photo_date: photoDate,
     });
 
