@@ -24,3 +24,32 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Masonry CSS */
+.my-masonry-grid {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: -12px;
+  width: auto;
+}
+.my-masonry-grid_column {
+  padding-left: 12px;
+  background-clip: padding-box;
+}
+
+.my-masonry-grid_column > div {
+  margin-bottom: 12px;
+}
+
+@media (min-width: 640px) {
+  .my-masonry-grid {
+    margin-left: -16px;
+  }
+  .my-masonry-grid_column {
+    padding-left: 16px;
+  }
+  .my-masonry-grid_column > div {
+    margin-bottom: 16px;
+  }
+}
