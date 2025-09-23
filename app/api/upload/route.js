@@ -30,6 +30,8 @@ export async function POST(request) {
           .split(",")
           .map((tag) => tag.trim())
       : [];
+    const autoGenerateCaption = formData.get("autoGenerateCaption") === "true";
+    const autoGenerateTags = formData.get("autoGenerateTags") === "true";
     const photoDate = formData.get("photoDate")
       ? new Date(formData.get("photoDate"))
       : new Date();
@@ -63,10 +65,10 @@ export async function POST(request) {
         .end(buffer);
     });
 
-    // Generate AI caption and tags if none provided
+    // Generate AI caption and tags if requested
     let finalCaption = caption;
     let finalTags = tags;
-    if (!caption || caption.trim() === "" || tags.length === 0) {
+    if (autoGenerateCaption || autoGenerateTags) {
       try {
         const aiResponse = await fetch(
           `${
@@ -87,10 +89,10 @@ export async function POST(request) {
 
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
-          if (!caption || caption.trim() === "") {
+          if (autoGenerateCaption) {
             finalCaption = aiData.caption;
           }
-          if (tags.length === 0) {
+          if (autoGenerateTags) {
             finalTags = aiData.tags || [];
           }
         } else {
@@ -98,21 +100,11 @@ export async function POST(request) {
             "Failed to generate AI content:",
             await aiResponse.text()
           );
-          if (!caption || caption.trim() === "") {
-            finalCaption = "Beautiful mehndi design"; // Fallback caption
-          }
-          if (tags.length === 0) {
-            finalTags = ["mehndi", "design"]; // Fallback tags
-          }
+          // Keep user input if AI fails
         }
       } catch (error) {
         console.warn("Error generating AI content:", error);
-        if (!caption || caption.trim() === "") {
-          finalCaption = "Beautiful mehndi design"; // Fallback caption
-        }
-        if (tags.length === 0) {
-          finalTags = ["mehndi", "design"]; // Fallback tags
-        }
+        // Keep user input if AI fails
       }
     }
 

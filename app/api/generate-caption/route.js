@@ -49,7 +49,7 @@ export async function POST(request) {
 
     // Call Gemini API
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
       {
         method: "POST",
         headers: {
@@ -60,11 +60,11 @@ export async function POST(request) {
             {
               parts: [
                 {
-                  text: "Analyze this image and generate a JSON object with exactly two fields: 'caption' (a short descriptive caption under 20 words) and 'tags' (an array of 2-3 relevant tags). Return only the JSON object, no additional text or explanation.",
+                  text: "Analyze this image and provide a caption and tags. Format your response exactly as:\nCaption: [short descriptive caption under 20 words]\nTags: [tag1, tag2, tag3]\n\nDo not include any other text.",
                 },
                 {
-                  inline_data: {
-                    mime_type: mimeType,
+                  inlineData: {
+                    mimeType: mimeType,
                     data: base64Image,
                   },
                 },
@@ -99,57 +99,49 @@ export async function POST(request) {
 
     const responseText = geminiData.candidates[0].content.parts[0].text.trim();
 
-    // Handle markdown code blocks (```json ... ```)
-    let jsonText = responseText;
-    if (responseText.startsWith("```json")) {
-      jsonText = responseText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-    } else if (responseText.startsWith("```")) {
-      jsonText = responseText.replace(/^```\s*/, "").replace(/\s*```$/, "");
-    }
+    // Parse the response for Caption: and Tags:
+    const captionMatch = responseText.match(/Caption:\s*(.+)/i);
+    const tagsMatch =
+      responseText.match(/Tags:\s*\[([^\]]+)\]/i) ||
+      responseText.match(/Tags:\s*(.+)/i);
 
-    // Try to extract JSON from the text using regex
-    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonText = jsonMatch[0];
-    }
-
-    // Try to parse as JSON
-    try {
-      const parsedResponse = JSON.parse(jsonText);
-      if (parsedResponse.caption && parsedResponse.tags) {
-        return NextResponse.json({
-          caption: parsedResponse.caption,
-          tags: Array.isArray(parsedResponse.tags) ? parsedResponse.tags : [],
-        });
-      }
-    } catch (parseError) {
-      console.warn("Failed to parse JSON response:", parseError);
-      console.warn("Response text:", responseText);
-      console.warn("Extracted JSON text:", jsonText);
-    }
-
-    // Fallback: try to extract caption and tags from markdown response using regex
-    const captionMatch = responseText.match(/"caption":\s*"([^"]+)"/);
-    const tagsMatch = responseText.match(/"tags":\s*\[([^\]]+)\]/);
+    let caption = "Beautiful mehndi design";
+    let tags = ["mehndi", "design"];
 
     if (captionMatch) {
-      const caption = captionMatch[1];
-      let tags = ["mehndi", "design"]; // Default tags
-
-      if (tagsMatch) {
-        try {
-          // Extract and clean tag strings
-          tags = tagsMatch[1]
-            .split(",")
-            .map((tag) => tag.trim().replace(/"/g, ""))
-            .filter((tag) => tag.length > 0);
-        } catch (tagError) {
-          console.warn("Failed to parse tags:", tagError);
-        }
+      caption = captionMatch[1].trim();
+      // Remove quotes if present
+      if (caption.startsWith('"') && caption.endsWith('"')) {
+        caption = caption.slice(1, -1);
       }
-
-      return NextResponse.json({ caption, tags });
     }
+
+    if (tagsMatch) {
+      try {
+        let tagsString = tagsMatch[1] || tagsMatch[0].split(":")[1].trim();
+        // If it's [tag1, tag2], parse as array
+        if (tagsString.startsWith("[") && tagsString.endsWith("]")) {
+          tags = tagsString
+            .slice(1, -1)
+            .split(",")
+            .map((tag) => tag.trim().replace(/"/g, ""));
+        } else {
+          // Assume comma separated
+          tags = tagsString
+            .split(",")
+            .map((tag) => tag.trim().replace(/"/g, ""));
+        }
+        tags = tags.filter((tag) => tag.length > 0);
+        if (tags.length === 0) {
+          tags = ["mehndi", "design"];
+        }
+      } catch (tagError) {
+        console.warn("Failed to parse tags:", tagError);
+        tags = ["mehndi", "design"];
+      }
+    }
+
+    return NextResponse.json({ caption, tags });
 
     // Final fallback: treat entire response as caption
     return NextResponse.json({

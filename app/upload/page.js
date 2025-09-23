@@ -143,8 +143,10 @@ export default function Upload() {
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("caption", autoGenerateCaption ? "" : caption);
-        formData.append("tags", autoGenerateTags ? "" : tags);
+        formData.append("caption", caption);
+        formData.append("tags", tags);
+        formData.append("autoGenerateCaption", autoGenerateCaption.toString());
+        formData.append("autoGenerateTags", autoGenerateTags.toString());
         formData.append("photoDate", photoDate || new Date().toISOString());
 
         try {
@@ -351,15 +353,13 @@ export default function Upload() {
                   </label>
                 </div>
 
-                {!autoGenerateCaption && (
-                  <input
-                    type="text"
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
-                    placeholder="Add a custom caption for your mehndi design..."
-                  />
-                )}
+                <input
+                  type="text"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
+                  placeholder="Add a custom caption for your mehndi design..."
+                />
 
                 {autoGenerateCaption && (
                   <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200">
@@ -399,15 +399,13 @@ export default function Upload() {
                   </label>
                 </div>
 
-                {!autoGenerateTags && (
-                  <input
-                    type="text"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
-                    placeholder="e.g., mehndi, design, floral, bridal, traditional"
-                  />
-                )}
+                <input
+                  type="text"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
+                  placeholder="e.g., mehndi, design, floral, bridal, traditional"
+                />
 
                 {autoGenerateTags && (
                   <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
