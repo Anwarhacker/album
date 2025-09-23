@@ -60,7 +60,7 @@ export async function POST(request) {
             {
               parts: [
                 {
-                  text: "Analyze this image and provide a JSON response with two fields: 'caption' (a concise, descriptive caption under 50 words) and 'tags' (an array of 2-3 relevant tags that describe the image content, style, and key elements). Format your response as valid JSON only.",
+                  text: "Analyze this image and provide a JSON response with two fields: 'caption' (a concise, descriptive caption like describing in Quotes form under 20 words) and 'tags' (an array of 2-3 relevant tags that describe the image content, style, and key elements). Format your response as valid JSON only.",
                 },
                 {
                   inline_data: {
