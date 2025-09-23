@@ -319,7 +319,7 @@ export default function Gallery() {
           {/* Header Section */}
           <div className="flex flex-col space-y-4 mb-6 sm:mb-8 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
             {/* User Info */}
-            <div className="flex items-center space-x-3 text-center">
+            <div className="flex items-center mx-auto space-x-3 text-center">
               {/* <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center shadow-lg">
                 <span className="text-white text-sm text-center capitalize font-bold">
                   {(session.user.name || session.user.email)
@@ -329,7 +329,7 @@ export default function Gallery() {
               </div> */}
               <div className="flex flex-col">
                 <span className="text-sm sm:text-lg text-gray-800 font-semibold capitalize ">
-                  Welcome ,{" "}
+                  Welcomeee ,{" "}
                   {session.user.name || session.user.email.split("@")[0]}
                 </span>
                 <span className="text-xs text-gray-500">
@@ -376,7 +376,7 @@ export default function Gallery() {
             </div>
 
             {/* View Mode Controls */}
-            <div className="flex gap-0.5 sm:gap-1 justify-center lg:justify-end">
+            <div className="flex gap-0.5 sm:gap-1 justify-center mx-2 lg:justify-end">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
@@ -415,9 +415,9 @@ export default function Gallery() {
 
           {/* Date Filter Section */}
           <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto lg:mx-0">
+            <div className="flex sm:flex-row gap-4 max-w-2xl mx-auto lg:mx-0">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm text-center font-medium text-gray-700 mb-2">
                   From Date
                 </label>
                 <input
@@ -428,7 +428,7 @@ export default function Gallery() {
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-center text-gray-700 mb-2">
                   To Date
                 </label>
                 <input
