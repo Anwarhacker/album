@@ -14,7 +14,8 @@ export default function Gallery() {
   const router = useRouter();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [view, setView] = useState("gallery"); // 'gallery' or 'timeline'
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,14 +38,15 @@ export default function Gallery() {
       fetchPhotos();
       fetchAlbums();
     }
-  }, [search, session]);
+  }, [fromDate, toDate, session]);
 
   const fetchPhotos = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/photos?search=${encodeURIComponent(search)}`
-      );
+      const params = new URLSearchParams();
+      if (fromDate) params.append("fromDate", fromDate);
+      if (toDate) params.append("toDate", toDate);
+      const res = await fetch(`/api/photos?${params.toString()}`);
       const data = await res.json();
       setPhotos(data.photos || []);
     } catch (error) {
@@ -411,19 +413,31 @@ export default function Gallery() {
             </div>
           </div>
 
-          {/* Search Section */}
+          {/* Date Filter Section */}
           <div className="mb-6 sm:mb-8">
-            <div className="relative max-w-md mx-auto lg:mx-0">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <span className="text-gray-400 text-lg">🔍</span>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto lg:mx-0">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-lg text-gray-900 transition-all duration-300 text-sm sm:text-base"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Search by date (YYYY-MM-DD or YYYY-MM)..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 sm:py-4 border border-gray-200 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-lg text-gray-900 placeholder-gray-500 transition-all duration-300 text-sm sm:text-base"
-              />
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-lg text-gray-900 transition-all duration-300 text-sm sm:text-base"
+                />
+              </div>
             </div>
           </div>
 
@@ -494,8 +508,8 @@ export default function Gallery() {
                 No photos found
               </h3>
               <p className="text-gray-500 mb-6">
-                {search
-                  ? "Try adjusting your search terms"
+                {fromDate || toDate
+                  ? "Try adjusting your date filters"
                   : "Get started by uploading your first photo"}
               </p>
               <Link
