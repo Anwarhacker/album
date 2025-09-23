@@ -767,7 +767,7 @@ function PhotoCard({
             </div>
           )}
           {showDate && (
-            <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-2 sm:px-3 py-1 rounded-full shadow-lg backdrop-blur-sm bg-opacity-90 font-medium">
+            <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-2 sm:px-3 py-1 rounded-full shadow-lg backdrop-blur-sm font-medium z-10">
               {format(new Date(photo.photo_date), "dd MMM")}
             </div>
           )}

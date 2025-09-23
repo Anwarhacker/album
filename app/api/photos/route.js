@@ -15,7 +15,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page")) || 1;
-    const limit = parseInt(searchParams.get("limit")) || 20;
+    const limit = parseInt(searchParams.get("limit")) || 1000; // Increased limit to show more photos
     const fromDate = searchParams.get("fromDate");
     const toDate = searchParams.get("toDate");
     const album = searchParams.get("album");
