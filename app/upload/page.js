@@ -9,11 +9,9 @@ export default function Upload() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [files, setFiles] = useState([]);
-  const [caption, setCaption] = useState("");
-  const [autoGenerateCaption, setAutoGenerateCaption] = useState(true);
-  const [tags, setTags] = useState("");
-  const [autoGenerateTags, setAutoGenerateTags] = useState(true);
-  const [photoDate, setPhotoDate] = useState("");
+  const [photoDate, setPhotoDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [uploading, setUploading] = useState(false);
   const [previews, setPreviews] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -143,11 +141,7 @@ export default function Upload() {
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("caption", caption);
-        formData.append("tags", tags);
-        formData.append("autoGenerateCaption", autoGenerateCaption.toString());
-        formData.append("autoGenerateTags", autoGenerateTags.toString());
-        formData.append("photoDate", photoDate || new Date().toISOString());
+        formData.append("photoDate", photoDate);
 
         try {
           const res = await fetch("/api/upload", {
@@ -176,11 +170,7 @@ export default function Upload() {
         // Clear form on success
         setFiles([]);
         setPreviews([]);
-        setCaption("");
-        setAutoGenerateCaption(true);
-        setTags("");
-        setAutoGenerateTags(true);
-        setPhotoDate("");
+        setPhotoDate(new Date().toISOString().split("T")[0]);
         router.push("/gallery");
       } else {
         alert("All uploads failed. Please try again.");
@@ -194,16 +184,16 @@ export default function Upload() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50 p-4 sm:p-8 text-black">
-      <div className="max-w-2xl mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50 p-2 sm:p-4 md:p-8 text-black">
+      <div className="max-w-sm sm:max-w-2xl mx-auto bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 p-4 sm:p-6 md:p-8">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-500 rounded-2xl shadow-lg mb-4">
             <span className="text-2xl">⬆️</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">
             Upload Mehndi Photo
           </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
+          <p className="text-gray-600 text-xs sm:text-sm md:text-base">
             Share your beautiful mehndi designs with the world
           </p>
         </div>
@@ -213,7 +203,7 @@ export default function Upload() {
               Photo
             </label>
             <div
-              className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${
+              className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 md:p-8 text-center transition-colors ${
                 isDragOver
                   ? "border-pink-500 bg-pink-50"
                   : files.length > 0
@@ -273,12 +263,12 @@ export default function Upload() {
                     {isDragOver ? "📂" : "🖼️"}
                   </div>
                   <div>
-                    <p className="text-lg font-medium text-gray-700">
+                    <p className="text-base sm:text-lg font-medium text-gray-700">
                       {isDragOver
                         ? "Drop your images here"
                         : "Drag & drop your mehndi photos"}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
                       Select multiple files at once • Up to 20 images
                     </p>
                   </div>
@@ -333,103 +323,6 @@ export default function Upload() {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                <span className="mr-2">🤖</span>
-                Caption
-              </label>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="autoGenerate"
-                    checked={autoGenerateCaption}
-                    onChange={(e) => setAutoGenerateCaption(e.target.checked)}
-                    className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2"
-                  />
-                  <label
-                    htmlFor="autoGenerate"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Auto-generate beautiful caption with AI
-                  </label>
-                </div>
-
-                <input
-                  type="text"
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
-                  placeholder="Add a custom caption for your mehndi design..."
-                />
-
-                {autoGenerateCaption && (
-                  <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200">
-                    <div className="flex items-center space-x-2 text-sm text-gray-700">
-                      <span className="text-lg">✨</span>
-                      <span className="font-medium">
-                        AI will generate a beautiful caption for your photo!
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Our AI analyzes your image and creates engaging
-                      descriptions automatically.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                <span className="mr-2">🏷️</span>
-                Tags
-              </label>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="autoGenerateTags"
-                    checked={autoGenerateTags}
-                    onChange={(e) => setAutoGenerateTags(e.target.checked)}
-                    className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2"
-                  />
-                  <label
-                    htmlFor="autoGenerateTags"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Auto-generate relevant tags with AI
-                  </label>
-                </div>
-
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
-                  placeholder="e.g., mehndi, design, floral, bridal, traditional"
-                />
-
-                {autoGenerateTags && (
-                  <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
-                    <div className="flex items-center space-x-2 text-sm text-gray-700">
-                      <span className="text-lg">🏷️</span>
-                      <span className="font-medium">
-                        AI will generate 2-3 relevant tags for your photo!
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Tags help categorize and search your photos easily.
-                    </p>
-                  </div>
-                )}
-
-                {!autoGenerateTags && (
-                  <p className="text-xs text-gray-500">
-                    Separate tags with commas
-                  </p>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
                 <span className="mr-2">📅</span>
                 Photo Date
               </label>
@@ -437,14 +330,14 @@ export default function Upload() {
                 type="date"
                 value={photoDate}
                 onChange={(e) => setPhotoDate(e.target.value)}
-                className="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300"
+                className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300 text-sm sm:text-base"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={uploading || files.length === 0}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-4 px-6 rounded-2xl hover:from-pink-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-3 font-semibold text-lg"
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-2xl hover:from-pink-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 font-semibold text-base sm:text-lg"
           >
             {uploading && <LoadingSpinner size="sm" />}
             <span>

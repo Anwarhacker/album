@@ -22,10 +22,25 @@ export async function GET(request) {
     let query = { user_id: session.user.id };
 
     if (search) {
-      query.$or = [
-        { caption: { $regex: search, $options: "i" } },
-        { tags: { $in: [new RegExp(search, "i")] } },
-      ];
+      // Check if search is a date pattern (YYYY-MM-DD or YYYY-MM)
+      const dateRegex = /^\d{4}-\d{2}(-\d{2})?$/;
+      if (dateRegex.test(search)) {
+        if (search.length === 7) {
+          // YYYY-MM
+          const start = new Date(`${search}-01`);
+          const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+          query.photo_date = { $gte: start, $lte: end };
+        } else {
+          // YYYY-MM-DD
+          const date = new Date(search);
+          const nextDay = new Date(date);
+          nextDay.setDate(nextDay.getDate() + 1);
+          query.photo_date = { $gte: date, $lt: nextDay };
+        }
+      } else {
+        // For now, no other search since caption/tags removed
+        // Could add other fields later
+      }
     }
 
     if (album) {

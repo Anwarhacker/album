@@ -20,9 +20,6 @@ export default function Gallery() {
   const [modalOpen, setModalOpen] = useState(false);
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState("");
-  const [editingPhoto, setEditingPhoto] = useState(false);
-  const [editCaption, setEditCaption] = useState("");
-  const [editTags, setEditTags] = useState("");
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [viewMode, setViewMode] = useState("grid"); // 'grid', 'compact', 'list'
@@ -119,9 +116,6 @@ export default function Gallery() {
       return;
     }
     setSelectedPhoto(photo);
-    setEditCaption(photo.caption || "");
-    setEditTags(photo.tags ? photo.tags.join(", ") : "");
-    setEditingPhoto(false);
     setModalOpen(true);
     // Prevent body scrolling when modal is open
     document.body.style.overflow = "hidden";
@@ -234,7 +228,7 @@ export default function Gallery() {
 
     const shareData = {
       title: "Mehndi Photo",
-      text: selectedPhoto.caption || "Check out this mehndi design!",
+      text: "Check out this mehndi design!",
       url: selectedPhoto.url,
     };
 
@@ -288,97 +282,6 @@ export default function Gallery() {
     }
   };
 
-  const handleEdit = async () => {
-    if (!selectedPhoto) return;
-
-    const tags = editTags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
-
-    try {
-      const res = await fetch(`/api/photos/${selectedPhoto._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          caption: editCaption,
-          tags: tags,
-        }),
-      });
-
-      if (res.ok) {
-        alert("Photo updated successfully!");
-        setEditingPhoto(false);
-        fetchPhotos(); // Refresh the photos list
-        // Update the selected photo in the modal
-        const data = await res.json();
-        setSelectedPhoto(data.photo);
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to update photo");
-      }
-    } catch (error) {
-      console.error("Error updating photo:", error);
-      alert("Failed to update photo");
-    }
-  };
-
-  const handleRegenerateCaption = async () => {
-    if (!selectedPhoto) return;
-
-    try {
-      const res = await fetch("/api/generate-caption", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageUrl: selectedPhoto.url,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setEditCaption(data.caption);
-        alert("New caption generated! Click 'Save Changes' to apply it.");
-      } else {
-        alert("Failed to generate new caption");
-      }
-    } catch (error) {
-      console.error("Error regenerating caption:", error);
-      alert("Failed to generate new caption");
-    }
-  };
-
-  const handleRegenerateTags = async () => {
-    if (!selectedPhoto) return;
-
-    try {
-      const res = await fetch("/api/generate-caption", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageUrl: selectedPhoto.url,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setEditTags(data.tags ? data.tags.join(", ") : "");
-        alert("New tags generated! Click 'Save Changes' to apply them.");
-      } else {
-        alert("Failed to generate new tags");
-      }
-    } catch (error) {
-      console.error("Error regenerating tags:", error);
-      alert("Failed to generate new tags");
-    }
-  };
-
   // Improved responsive breakpoints
   const breakpointColumnsObj = {
     default: 4,
@@ -413,8 +316,8 @@ export default function Gallery() {
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="flex flex-col space-y-4 mb-6 sm:mb-8 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-            {/* User Info - Hidden on small screens, visible on large */}
-            <div className=" lg:flex items-center space-x-3 text-center">
+            {/* User Info */}
+            <div className="flex items-center space-x-3 text-center">
               {/* <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center shadow-lg">
                 <span className="text-white text-sm text-center capitalize font-bold">
                   {(session.user.name || session.user.email)
@@ -423,7 +326,7 @@ export default function Gallery() {
                 </span>
               </div> */}
               <div className="flex flex-col">
-                <span className="text-lg text-gray-800 font-semibold capitalize ">
+                <span className="text-sm sm:text-lg text-gray-800 font-semibold capitalize ">
                   Welcome ,{" "}
                   {session.user.name || session.user.email.split("@")[0]}
                 </span>
@@ -434,7 +337,7 @@ export default function Gallery() {
             </div>
 
             {/* View Toggle Buttons */}
-            <div className="flex gap-2 justify-center lg:justify-end">
+            <div className="flex gap-1 sm:gap-2 justify-center lg:justify-end">
               <button
                 onClick={() => setView("gallery")}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 ${
@@ -471,7 +374,7 @@ export default function Gallery() {
             </div>
 
             {/* View Mode Controls */}
-            <div className="flex gap-1 justify-center lg:justify-end">
+            <div className="flex gap-0.5 sm:gap-1 justify-center lg:justify-end">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
@@ -516,7 +419,7 @@ export default function Gallery() {
               </div>
               <input
                 type="text"
-                placeholder="Search by caption or tags..."
+                placeholder="Search by date (YYYY-MM-DD or YYYY-MM)..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 sm:py-4 border border-gray-200 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-lg text-gray-900 placeholder-gray-500 transition-all duration-300 text-sm sm:text-base"
@@ -619,7 +522,7 @@ export default function Gallery() {
                     <div className="relative w-32 h-32 flex-shrink-0">
                       <Image
                         src={photo.url}
-                        alt={photo.caption || "Mehndi photo"}
+                        alt="Mehndi photo"
                         fill
                         className="object-cover"
                         sizes="128px"
@@ -643,28 +546,6 @@ export default function Gallery() {
                     <div className="flex-1 p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          {photo.caption && (
-                            <p className="text-gray-800 font-medium text-sm mb-1 line-clamp-2">
-                              {photo.caption}
-                            </p>
-                          )}
-                          {photo.tags && photo.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {photo.tags.slice(0, 3).map((tag, index) => (
-                                <span
-                                  key={index}
-                                  className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium border border-pink-200/50"
-                                >
-                                  #{tag}
-                                </span>
-                              ))}
-                              {photo.tags.length > 3 && (
-                                <span className="text-xs text-gray-500 px-2 py-1">
-                                  +{photo.tags.length - 3} more
-                                </span>
-                              )}
-                            </div>
-                          )}
                           <p className="text-xs text-gray-500">
                             {format(new Date(photo.photo_date), "dd MMM yyyy")}
                           </p>
@@ -728,7 +609,7 @@ export default function Gallery() {
                           <div className="relative w-32 h-32 flex-shrink-0">
                             <Image
                               src={photo.url}
-                              alt={photo.caption || "Mehndi photo"}
+                              alt="Mehndi photo"
                               fill
                               className="object-cover"
                               sizes="128px"
@@ -753,32 +634,7 @@ export default function Gallery() {
                           </div>
                           <div className="flex-1 p-4">
                             <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                {photo.caption && (
-                                  <p className="text-gray-800 font-medium text-sm mb-1 line-clamp-2">
-                                    {photo.caption}
-                                  </p>
-                                )}
-                                {photo.tags && photo.tags.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mb-2">
-                                    {photo.tags
-                                      .slice(0, 3)
-                                      .map((tag, index) => (
-                                        <span
-                                          key={index}
-                                          className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium border border-pink-200/50"
-                                        >
-                                          #{tag}
-                                        </span>
-                                      ))}
-                                    {photo.tags.length > 3 && (
-                                      <span className="text-xs text-gray-500 px-2 py-1">
-                                        +{photo.tags.length - 3} more
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
+                              <div className="flex-1"></div>
                             </div>
                           </div>
                         </div>
@@ -832,15 +688,6 @@ export default function Gallery() {
               onShare={handleShare}
               onAddToAlbum={addToAlbum}
               onDelete={handleDelete}
-              editingPhoto={editingPhoto}
-              setEditingPhoto={setEditingPhoto}
-              editCaption={editCaption}
-              setEditCaption={setEditCaption}
-              editTags={editTags}
-              setEditTags={setEditTags}
-              onEdit={handleEdit}
-              onRegenerateCaption={handleRegenerateCaption}
-              onRegenerateTags={handleRegenerateTags}
             />
           )}
         </div>
@@ -879,7 +726,7 @@ function PhotoCard({
         >
           <Image
             src={photo.url}
-            alt={photo.caption || "Mehndi photo"}
+            alt="Mehndi photo"
             width={compact ? 300 : 400}
             height={compact ? 400 : 500}
             className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
@@ -919,32 +766,6 @@ function PhotoCard({
             </div>
           )}
         </div>
-        {(photo.caption || (photo.tags && photo.tags.length > 0)) && (
-          <div className="p-3 sm:p-4 bg-gradient-to-br from-white to-pink-50/30">
-            {photo.caption && (
-              <p className="text-gray-800 text-sm font-medium leading-relaxed mb-2 line-clamp-3">
-                {photo.caption}
-              </p>
-            )}
-            {photo.tags && photo.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 sm:gap-2">
-                {photo.tags.slice(0, 3).map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium border border-pink-200/50"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-                {photo.tags.length > 3 && (
-                  <span className="text-xs text-gray-500 px-2 py-1">
-                    +{photo.tags.length - 3} more
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -961,152 +782,45 @@ function PhotoModal({
   onShare,
   onAddToAlbum,
   onDelete,
-  editingPhoto,
-  setEditingPhoto,
-  editCaption,
-  setEditCaption,
-  editTags,
-  setEditTags,
-  onEdit,
-  onRegenerateCaption,
-  onRegenerateTags,
 }) {
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-1 sm:p-2 md:p-4">
+      <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl max-w-sm sm:max-w-2xl md:max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-pink-50 to-purple-50">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+        <div className="p-2 sm:p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-pink-50 to-purple-50">
+          <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">
             Photo Details
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl sm:text-3xl p-1 hover:bg-gray-100 rounded-full transition-colors w-8 h-8 flex items-center justify-center"
+            className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl md:text-3xl p-1 hover:bg-gray-100 rounded-full transition-colors w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
           >
             ×
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6">
           <div className="mb-4 sm:mb-6">
             <Image
               src={photo.url}
-              alt={photo.caption || "Mehndi photo"}
+              alt="Mehndi photo"
               width={800}
               height={600}
-              className="w-full h-auto rounded-lg shadow-lg"
-              sizes="(max-width: 768px) 100vw, 800px"
+              className="w-full h-auto rounded-md sm:rounded-lg shadow-lg"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, 800px"
             />
           </div>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="text-xs sm:text-sm md:text-base">
               <div>
                 <span className="font-semibold text-gray-700">Date:</span>
                 <p className="text-gray-600 mt-1">
                   {format(new Date(photo.photo_date), "EEEE, dd MMMM yyyy")}
                 </p>
               </div>
-
-              {photo.caption && (
-                <div>
-                  <span className="font-semibold text-gray-700">Caption:</span>
-                  <p className="text-gray-600 mt-1">{photo.caption}</p>
-                </div>
-              )}
             </div>
-
-            {photo.tags && photo.tags.length > 0 && (
-              <div>
-                <span className="font-semibold text-gray-700">Tags:</span>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {photo.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 text-xs px-3 py-1 rounded-full font-medium border border-pink-200/50"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Edit Form */}
-            {editingPhoto ? (
-              <div className="pt-4 border-t border-gray-100 space-y-4 text-black">
-                <h3 className="font-semibold text-gray-700">
-                  Edit Photo Details
-                </h3>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Caption
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={editCaption}
-                      onChange={(e) => setEditCaption(e.target.value)}
-                      className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      placeholder="Enter caption..."
-                    />
-                    <button
-                      onClick={onRegenerateCaption}
-                      className="px-3 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105 whitespace-nowrap"
-                      title="Generate AI caption"
-                    >
-                      🤖 AI
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tags (comma-separated)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={editTags}
-                      onChange={(e) => setEditTags(e.target.value)}
-                      className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      placeholder="tag1, tag2, tag3..."
-                    />
-                    <button
-                      onClick={onRegenerateTags}
-                      className="px-3 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105 whitespace-nowrap"
-                      title="Generate AI tags"
-                    >
-                      🏷️ AI
-                    </button>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={onEdit}
-                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    onClick={() => setEditingPhoto(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="pt-4 border-t border-gray-100">
-                <button
-                  onClick={() => setEditingPhoto(true)}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105"
-                >
-                  <span>✏️</span>
-                  Edit Details
-                </button>
-              </div>
-            )}
 
             {/* Album Selection */}
             {albums.length > 0 && (
@@ -1139,24 +853,24 @@ function PhotoModal({
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-100">
               <button
                 onClick={onDownload}
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:shadow-lg transition-all duration-300 text-xs sm:text-sm font-medium transform hover:scale-105"
               >
                 <span>⬇️</span>
                 Download
               </button>
               <button
                 onClick={onShare}
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:shadow-lg transition-all duration-300 text-xs sm:text-sm font-medium transform hover:scale-105"
               >
                 <span>🔗</span>
                 Share
               </button>
               <button
                 onClick={onDelete}
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:shadow-lg transition-all duration-300 text-xs sm:text-sm font-medium transform hover:scale-105"
               >
                 <span>🗑️</span>
                 Delete

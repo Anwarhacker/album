@@ -23,15 +23,6 @@ export async function POST(request) {
 
     const formData = await request.formData();
     const file = formData.get("file");
-    const caption = formData.get("caption") || "";
-    const tags = formData.get("tags")
-      ? formData
-          .get("tags")
-          .split(",")
-          .map((tag) => tag.trim())
-      : [];
-    const autoGenerateCaption = formData.get("autoGenerateCaption") === "true";
-    const autoGenerateTags = formData.get("autoGenerateTags") === "true";
     const photoDate = formData.get("photoDate")
       ? new Date(formData.get("photoDate"))
       : new Date();
@@ -65,57 +56,14 @@ export async function POST(request) {
         .end(buffer);
     });
 
-    // Generate AI caption and tags if requested
-    let finalCaption = caption;
-    let finalTags = tags;
-    if (autoGenerateCaption || autoGenerateTags) {
-      try {
-        const aiResponse = await fetch(
-          `${
-            process.env.NEXTAUTH_URL || "http://localhost:3000"
-          }/api/generate-caption`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              // Include session cookie for authentication
-              Cookie: request.headers.get("cookie") || "",
-            },
-            body: JSON.stringify({
-              imageUrl: result.secure_url,
-            }),
-          }
-        );
-
-        if (aiResponse.ok) {
-          const aiData = await aiResponse.json();
-          if (autoGenerateCaption) {
-            finalCaption = aiData.caption;
-          }
-          if (autoGenerateTags) {
-            finalTags = aiData.tags || [];
-          }
-        } else {
-          console.warn(
-            "Failed to generate AI content:",
-            await aiResponse.text()
-          );
-          // Keep user input if AI fails
-        }
-      } catch (error) {
-        console.warn("Error generating AI content:", error);
-        // Keep user input if AI fails
-      }
-    }
-
     // Save to MongoDB
     const photo = new Photo({
       user_id: session.user.id,
       public_id: result.public_id,
       url: result.secure_url,
       folder,
-      caption: finalCaption,
-      tags: finalTags,
+      caption: "",
+      tags: [],
       photo_date: photoDate,
     });
 
@@ -128,8 +76,6 @@ export async function POST(request) {
         url: result.secure_url,
         public_id: result.public_id,
         folder,
-        caption,
-        tags,
         photo_date: photoDate,
         created_at: photo.created_at,
       },
