@@ -9,9 +9,7 @@ export default function Upload() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [files, setFiles] = useState([]);
-  const [photoDate, setPhotoDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [photoDate, setPhotoDate] = useState("");
   const [uploading, setUploading] = useState(false);
   const [previews, setPreviews] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -170,7 +168,7 @@ export default function Upload() {
         // Clear form on success
         setFiles([]);
         setPreviews([]);
-        setPhotoDate(new Date().toISOString().split("T")[0]);
+        setPhotoDate("");
         router.push("/gallery");
       } else {
         alert("All uploads failed. Please try again.");
@@ -330,13 +328,14 @@ export default function Upload() {
                 type="date"
                 value={photoDate}
                 onChange={(e) => setPhotoDate(e.target.value)}
+                required
                 className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50/50 transition-all duration-300 text-sm sm:text-base"
               />
             </div>
           </div>
           <button
             type="submit"
-            disabled={uploading || files.length === 0}
+            disabled={uploading || files.length === 0 || !photoDate}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-2xl hover:from-pink-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 font-semibold text-base sm:text-lg"
           >
             {uploading && <LoadingSpinner size="sm" />}

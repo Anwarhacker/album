@@ -23,9 +23,14 @@ export async function POST(request) {
 
     const formData = await request.formData();
     const file = formData.get("file");
-    const photoDate = formData.get("photoDate")
-      ? new Date(formData.get("photoDate"))
-      : new Date();
+    const photoDateStr = formData.get("photoDate");
+    if (!photoDateStr) {
+      return NextResponse.json(
+        { error: "Photo date is required" },
+        { status: 400 }
+      );
+    }
+    const photoDate = new Date(photoDateStr);
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
