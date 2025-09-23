@@ -329,7 +329,7 @@ export default function Gallery() {
               </div> */}
               <div className="flex flex-col">
                 <span className="text-sm sm:text-lg text-gray-800 font-semibold capitalize ">
-                  Welcomeee ,{" "}
+                  Welcome ,{" "}
                   {session.user.name || session.user.email.split("@")[0]}
                 </span>
                 <span className="text-xs text-gray-500">
