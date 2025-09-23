@@ -60,7 +60,7 @@ export async function POST(request) {
             {
               parts: [
                 {
-                  text: "Analyze this image and provide a JSON response with two fields: 'caption' (a concise, descriptive caption like describing in Quotes form under 20 words) and 'tags' (an array of 2-3 relevant tags that describe the image content, style, and key elements). Format your response as valid JSON only.",
+                  text: "Analyze this image and generate a JSON object with exactly two fields: 'caption' (a short descriptive caption under 20 words) and 'tags' (an array of 2-3 relevant tags). Return only the JSON object, no additional text or explanation.",
                 },
                 {
                   inline_data: {
@@ -72,8 +72,8 @@ export async function POST(request) {
             },
           ],
           generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 100,
+            temperature: 0.1,
+            maxOutputTokens: 200,
           },
         }),
       }
@@ -107,6 +107,12 @@ export async function POST(request) {
       jsonText = responseText.replace(/^```\s*/, "").replace(/\s*```$/, "");
     }
 
+    // Try to extract JSON from the text using regex
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[0];
+    }
+
     // Try to parse as JSON
     try {
       const parsedResponse = JSON.parse(jsonText);
@@ -119,6 +125,7 @@ export async function POST(request) {
     } catch (parseError) {
       console.warn("Failed to parse JSON response:", parseError);
       console.warn("Response text:", responseText);
+      console.warn("Extracted JSON text:", jsonText);
     }
 
     // Fallback: try to extract caption and tags from markdown response using regex
