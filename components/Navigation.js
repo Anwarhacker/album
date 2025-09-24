@@ -34,7 +34,7 @@ export default function Navigation() {
               <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">M</span>
               </div>
-              <span>Modern Gallery</span>
+              <span>Mehndi Album</span>
             </Link>
           </div>
 
